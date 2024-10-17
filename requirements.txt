@@ -1,0 +1,2 @@
+websockets~=13.1
+flet~=0.24.1
