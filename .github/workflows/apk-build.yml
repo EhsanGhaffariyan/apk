@@ -1,23 +1,23 @@
 name: APK Build
+
 on:
-  # Runs on push to any of the below branches
+  # اجرا هنگام push به شاخه‌های زیر
   push:
     branches:
       - master
       - main
-  # Runs on pull request events that target one of the below branches
+  # اجرا هنگام pull request به شاخه‌های زیر
   pull_request:
     branches:
       - master
       - main
-
-  # Allows you to run this workflow manually from the Actions tab of the repository
+  # امکان اجرای دستی از تب Actions
   workflow_dispatch:
 
 env:
-  # https://flet.dev/docs/publish#versioning
+  # متغیرهای محیطی برای نسخه‌بندی و ابزارها
   BUILD_NUMBER: 1
-  BUILD_VERSION: 1.0.0
+  BUILD_VERSION: 1.0.0  # نسخه برنامه که توی کد شما 1.0.0 بود
   PYTHON_VERSION: 3.12.2
   FLUTTER_VERSION: 3.24.0
 
@@ -26,39 +26,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. دریافت کد از مخزن
     - name: Checkout code
       uses: actions/checkout@v4
 
+    # 2. نصب پایتون
     - name: Setup Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
+    # 3. نصب وابستگی‌های پایتون
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    # 4. نصب فلاتر
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
 
+    # 5. نصب JDK برای اندروید
     - name: Setup Java JDK
       uses: actions/setup-java@v4.2.1
       with:
-        distribution: 'temurin' # See https://github.com/marketplace/actions/setup-java-jdk#supported-distributions for available options
+        distribution: 'temurin'
         java-version: '21'
 
+    # 6. ساخت APK با Flet
     - name: Flet Build APK
       run: |
-        flutter config --no-analytics # disable flutter analytics
-        flet build apk --verbose    # adapt the command to your needs - https://flet.dev/docs/publish 
+        flutter config --no-analytics  # غیرفعال کردن آنالیتیکس فلاتر
+        flet build apk --release --build-number ${{ env.BUILD_NUMBER }} --build-version ${{ env.BUILD_VERSION }} --verbose
+      # توضیحات:
+      # --release: ساخت نسخه نهایی
+      # --build-number و --build-version: شماره و نسخه ساخت از متغیرهای محیطی
+      # --verbose: نمایش جزییات ساخت برای دیباگ
 
+    # 7. آپلود فایل APK به عنوان آرتیفکت
     - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4.3.4  # https://github.com/marketplace/actions/upload-a-build-artifact
+      uses: actions/upload-artifact@v4.3.4
       with:
-        name: apk-build-artifact  # the name of the artifact
-        path: build/apk  # location of Flet build output
-        if-no-files-found: error  # Fail the action with an error message if no files are found
-        overwrite: false  # If true, an artifact with a matching name will be deleted before a new one is uploaded. If false, the action will fail if an artifact for the given name already exists. Does not fail if the artifact does not exist.
+        name: smarters-player-lite-apk  # تغییر نام آرتیفکت به اسم برنامه شما
+        path: build/apk  # مسیر خروجی ساخت APK در Flet
+        if-no-files-found: error  # خطا در صورت نبود فایل
+        overwrite: false  # عدم بازنویسی آرتیفکت قبلی
