@@ -1,2 +1,5 @@
-websockets
+requests
 flet
+asyncio
+datetime
+flet_video
