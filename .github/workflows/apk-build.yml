@@ -1,5 +1,4 @@
 name: APK Build
-
 on:
   # Runs on push to any of the below branches
   push:
